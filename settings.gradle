@@ -18,8 +18,11 @@ dependencyResolutionManagement {
             credentials {
                 // Do not change the username below.
                 // This should always be `mapbox` (not your username).
-                username = "mapbox"
-                password = MAPBOX_DOWNLOADS_TOKEN
+                username = "mapbox"git 
+                password = System.properties["MAPBOX_DOWNLOADS_TOKEN"]
+                if (password == null || password == "") {
+                    throw new GradleException("MAPBOX_DOWNLOADS_TOKEN isn't set. Set it to the project properties or to the enviroment variables.")
+                }
             }
         }
     }
