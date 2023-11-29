@@ -44,5 +44,9 @@ MAPBOX_DOWNLOAD_TOKEN={TOKEN}
 
 Replace `{TOKEN}` with mapbox secret key.
 
-More info [here](https://docs.mapbox.com/help/troubleshooting/private-access-token-android-and-ios/).
+Note: `gradle.properties` should be created in your `GRADLE_USER_HOME`, NOT the project-level `~/.gradle/` directory.
+`GRADLE_USER_HOME` will generally be `C:\Users\USERNAME\.gradle\`, but in Android Studio you can check the exact path via 
+`File > Settings... > Build, Execution, Deployment > Gradle`.
+
+More info [here](https://docs.mapbox.com/help/troubleshooting/private-access-token-android-and-ios/) and [also here](https://docs.mapbox.com/android/maps/guides/install/).
 
