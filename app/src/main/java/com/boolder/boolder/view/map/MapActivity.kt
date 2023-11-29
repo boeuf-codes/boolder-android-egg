@@ -86,6 +86,9 @@ class MapActivity : AppCompatActivity(), LocationCallback, BoolderMapListener {
             binding.fabLocation
                 .updateLayoutParams<MarginLayoutParams> { updateMargins(bottom = bottomMargin) }
 
+            binding.fabPlanRoute
+                .updateLayoutParams<MarginLayoutParams> { updateMargins(bottom = bottomMargin) }
+
             WindowInsetsCompat.CONSUMED
         }
 
@@ -96,7 +99,12 @@ class MapActivity : AppCompatActivity(), LocationCallback, BoolderMapListener {
 
         setupMap()
 
+        binding.fabPlanRoute.setOnClickListener {
+            Log.i("fabPlanRoute", "Hello world! :)")
+        }
+
         binding.fabLocation.setOnClickListener {
+            Log.i("fabLocation", "Hello world! :)")
             locationProvider.askForPosition()
         }
 

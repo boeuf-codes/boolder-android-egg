@@ -15,6 +15,21 @@
             android:layout_height="match_parent" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_plan_route"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/margin_map_controls"
+            android:layout_marginBottom="@dimen/margin_map_controls"
+            android:src="@drawable/ic_fab_plan_route"
+            android:backgroundTint="@color/white"
+            android:contentDescription="@string/cd_plan_a_route"
+            app:borderWidth="0dp"
+            app:fabSize="mini"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/grades_filter_button"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_location"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -25,8 +40,9 @@
             android:src="@drawable/ic_fab_near_me"
             app:borderWidth="0dp"
             app:fabSize="mini"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/grades_filter_button"
+            app:layout_constraintBottom_toBottomOf="parent"/>
 
         <include
             android:id="@+id/search_component"
@@ -43,9 +59,9 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/margin_map_controls"
             app:icon="@drawable/ic_tune_24"
+            app:layout_constraintStart_toEndOf="@id/fab_plan_route"
+            app:layout_constraintEnd_toStartOf="@+id/fab_location"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
             tools:text="Grades" />
 
         <androidx.compose.ui.platform.ComposeView

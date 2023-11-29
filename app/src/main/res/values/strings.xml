@@ -4,6 +4,7 @@
 
     <string name="search_query_hint">Problem or area name</string>
     <string name="cd_find_my_position">Find my position</string>
+    <string name="cd_plan_a_route">Plan a crag route</string>
     <string name="cancel_search">Cancel search</string>
     <string name="cd_go_back">Go Back</string>
     <string name="cd_boolder_picture">Topo photo</string>

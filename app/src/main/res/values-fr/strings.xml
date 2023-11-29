@@ -2,6 +2,7 @@
 <resources>
     <string name="search_query_hint">Nom de voie ou secteur</string>
     <string name="cd_find_my_position">Me localiser</string>
+    <string name="cd_plan_a_route">Créer un parcours de blocs</string>
     <string name="cancel_search">Annuler la recherche</string>
     <string name="cd_go_back">Retour</string>
     <string name="cd_boolder_picture">Photo du bloc</string>
