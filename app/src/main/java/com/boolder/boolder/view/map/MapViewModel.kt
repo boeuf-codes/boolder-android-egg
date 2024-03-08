@@ -1,10 +1,13 @@
 package com.boolder.boolder.view.map
 
 import android.content.res.Resources
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.boolder.boolder.R
 import com.boolder.boolder.data.database.repository.AreaRepository
+import com.boolder.boolder.data.database.repository.ProblemRepository
+import com.boolder.boolder.domain.convert
 import com.boolder.boolder.domain.model.ALL_GRADES
 import com.boolder.boolder.domain.model.GradeRange
 import com.boolder.boolder.domain.model.Topo
@@ -15,9 +18,11 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.lang.NumberFormatException
+import java.text.Normalizer
 
 class MapViewModel(
     private val areaRepository: AreaRepository,
+    private val problemRepository: ProblemRepository,
     private val topoDataAggregator: TopoDataAggregator,
     private val resources: Resources
 ) : ViewModel() {
@@ -129,6 +134,26 @@ class MapViewModel(
         if (_areaStateFlow.value is AreaState.Undefined) return
 
         _areaStateFlow.update { AreaState.Undefined }
+    }
+
+    fun fetchProblemByName(problemName: String?) {
+        viewModelScope.launch {
+            val pattern = problemName
+                ?.takeIf { it.isNotBlank() }
+                ?.let { "%${it.normalized()}%" }
+                .orEmpty()
+            val problems = problemRepository.problemsByName(pattern)
+                .map { it.convert() }
+
+            Log.i("fetchProblemByName", problems.toString())
+        }
+    }
+    private fun String.normalized() =
+        Normalizer.normalize(this, Normalizer.Form.NFD)
+            .replace(REGEX_EXCLUDED_CHARS, "")
+            .lowercase()
+    companion object {
+        private val REGEX_EXCLUDED_CHARS = Regex("[^0-9a-zA-Z]")
     }
 
     data class GradeState(

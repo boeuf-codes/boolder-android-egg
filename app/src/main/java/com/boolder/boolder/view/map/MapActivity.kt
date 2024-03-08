@@ -101,10 +101,12 @@ class MapActivity : AppCompatActivity(), LocationCallback, BoolderMapListener {
 
         binding.fabPlanRoute.setOnClickListener {
             Log.i("fabPlanRoute", "Hello world! :)")
+            val query = "Crocodile"
+            mapViewModel.fetchProblemByName(query)
+
         }
 
         binding.fabLocation.setOnClickListener {
-            Log.i("fabLocation", "Hello world! :)")
             locationProvider.askForPosition()
         }
 
