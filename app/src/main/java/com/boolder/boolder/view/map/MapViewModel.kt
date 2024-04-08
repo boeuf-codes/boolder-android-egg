@@ -13,6 +13,8 @@ import com.boolder.boolder.domain.model.GradeRange
 import com.boolder.boolder.domain.model.Topo
 import com.boolder.boolder.domain.model.TopoOrigin
 import com.boolder.boolder.domain.model.gradeRangeLevelDisplay
+import com.boolder.boolder.domain.model.Problem
+import com.boolder.boolder.utils.calculation.GPSDistanceAlgorithm
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -29,6 +31,10 @@ class MapViewModel(
 
     private val _topoStateFlow = MutableStateFlow<Topo?>(null)
     val topoStateFlow = _topoStateFlow.asStateFlow()
+
+    //do these want to be MutableLiveData like in search VM?
+    private val gradeSearchResult = mutableListOf<Problem>()
+    private val areaSearchResult = mutableListOf<Problem>()
 
     private var currentGradeRange = GradeRange(
         min = ALL_GRADES.first(),
@@ -134,6 +140,42 @@ class MapViewModel(
         if (_areaStateFlow.value is AreaState.Undefined) return
 
         _areaStateFlow.update { AreaState.Undefined }
+    }
+
+    //this should be able to take GradeRange instead of List<String>
+    fun fetchProblemsByAreaAndGrade(areaName: String, grades: List<String>) {
+        viewModelScope.launch {
+            val problems = problemRepository.getProblemsByAreaAndGrade(areaName, grades)
+                .map { it.convert() }
+
+            gradeSearchResult.clear()
+            gradeSearchResult.addAll(problems)
+
+            Log.i("problemsByAreaAndGrade", problems.count().toString())
+        }
+    }
+
+    fun fetchAllProblemsByArea(areaName: String) {
+        viewModelScope.launch {
+            val problems = problemRepository.getAllProblemsByArea(areaName)
+                .map { it.convert() }
+
+            areaSearchResult.clear()
+            areaSearchResult.addAll(problems)
+
+           /* for (problem in problems) {
+                problem.name?.let { Log.i("ProblemsByArea", it) }
+            }*/
+            Log.i("ProblemsByArea", problems.count().toString())
+        }
+    }
+
+    fun fetchClosePointsByDistance(distance: Float): List<Pair<Problem, Problem>> {
+        val closeProblems = GPSDistanceAlgorithm().pointsWithinDistance(areaSearchResult, distance)
+
+        Log.i("closeProblems", closeProblems.count().toString())
+
+        return closeProblems
     }
 
     fun fetchProblemByName(problemName: String?) {

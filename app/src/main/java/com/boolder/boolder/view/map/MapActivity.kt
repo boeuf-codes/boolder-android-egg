@@ -101,9 +101,22 @@ class MapActivity : AppCompatActivity(), LocationCallback, BoolderMapListener {
 
         binding.fabPlanRoute.setOnClickListener {
             Log.i("fabPlanRoute", "Hello world! :)")
-            val query = "Crocodile"
-            mapViewModel.fetchProblemByName(query)
 
+            //check retrieving problems by name
+/*            val query = "Crocodile"
+            mapViewModel.fetchProblemByName(query)*/
+
+            //check retrieving all climb pairs of grade and < distance
+/*            val areaName = "cuvier"
+            val grades = listOf("3a", "3b", "3c")
+
+            mapViewModel.fetchProblemsByAreaAndGrade(areaName, grades)*/
+
+            //check retrieving all climbs from a crag and getting pairs within distance D of eachother
+            val distance: Float = 10F //this is in METERS
+            val areaName = "cuvier"
+            mapViewModel.fetchAllProblemsByArea(areaName)
+            var closeProblems = mapViewModel.fetchClosePointsByDistance(distance)
         }
 
         binding.fabLocation.setOnClickListener {

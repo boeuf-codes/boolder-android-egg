@@ -30,4 +30,10 @@ class ProblemRepository(
         circuitProblemNumber: Int
     ): Int? =
         problemDao.problemIdByCircuitAndNumber(circuitId, circuitProblemNumber)
+
+    suspend fun getProblemsByAreaAndGrade(name: String, grades: List<String>): List<ProblemEntity> =
+        problemDao.getProblemsByAreaAndGrade(name, grades)
+
+    suspend fun getAllProblemsByArea(name: String): List<ProblemEntity> =
+        problemDao.getAllProblemsByArea(name)
 }

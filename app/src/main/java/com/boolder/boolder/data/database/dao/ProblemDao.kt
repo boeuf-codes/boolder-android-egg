@@ -40,4 +40,25 @@ interface ProblemDao {
         circuitId: Int,
         circuitProblemNumber: Int
     ): Int?
+
+    //passing grades in the form ('1a','1b','1c', '2a') i.e. List<String>
+    @Query(
+        """
+        SELECT problems.* FROM problems, areas  
+        WHERE problems.grade IN (:grades)
+            AND problems.area_id = areas.id
+            AND areas.name_searchable LIKE :name
+        ORDER BY problems.grade ASC
+        """
+    )
+    suspend fun getProblemsByAreaAndGrade(name: String, grades: List<String>): List<ProblemEntity>
+
+    @Query(
+        """
+        SELECT problems.*, areas.name AS 'areaName' FROM problems, areas 
+	    WHERE problems.area_id = areas.id
+	        AND areas.name_searchable LIKE :name
+        """
+    )
+    suspend fun getAllProblemsByArea(name: String): List<ProblemEntity>
 }
