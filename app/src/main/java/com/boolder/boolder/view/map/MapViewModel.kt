@@ -15,6 +15,7 @@ import com.boolder.boolder.domain.model.TopoOrigin
 import com.boolder.boolder.domain.model.gradeRangeLevelDisplay
 import com.boolder.boolder.domain.model.Problem
 import com.boolder.boolder.utils.calculation.GPSDistanceAlgorithm
+import com.boolder.boolder.utils.calculation.DIMACSConverter
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -34,7 +35,8 @@ class MapViewModel(
 
     //do these want to be MutableLiveData like in search VM?
     private val gradeSearchResult = mutableListOf<Problem>()
-    private val areaSearchResult = mutableListOf<Problem>()
+    private val areaSearchResult  = mutableListOf<Problem>()
+    private val closeProblemsResult = mutableListOf<Pair<Problem, Problem>>()
 
     private var currentGradeRange = GradeRange(
         min = ALL_GRADES.first(),
@@ -142,17 +144,83 @@ class MapViewModel(
         _areaStateFlow.update { AreaState.Undefined }
     }
 
-    //this should be able to take GradeRange instead of List<String>
-    fun fetchProblemsByAreaAndGrade(areaName: String, grades: List<String>) {
+    private fun convertCNF(P1: List<Problem>, P2: List<Problem>, P3: List<Problem>,
+                   D1: List<Pair<Problem,Problem>>, D2: List<Pair<Problem,Problem>>, D3: List<Pair<Problem,Problem>>,
+                   n: Int, m: Int, p:Int) {
+        val converter = DIMACSConverter(P1, P2, P3, D1, D2, D3, n , m, p)
+        val dimacsString = converter.convert()
+
+        //Log.i("convertCNF, C2", converter.clausesC2.size.toString())
+        //Log.i("convertCNF, C3", converter.clausesC3.size.toString())
+        //Log.i("convertCNF, C5", converter.clausesC5.size.toString())
+        //Log.i("convertCNF, C6", converter.clausesC6.size.toString())
+
+        Log.i("convertCNF, DIMACS", dimacsString)
+    }
+    fun convertCNF(areaName: String, wuGrades: List<String>, pGrades: List<String>, cdGrades: List<String>, distance: Float,
+                   n: Int, m: Int, p:Int) {
         viewModelScope.launch {
-            val problems = problemRepository.getProblemsByAreaAndGrade(areaName, grades)
-                .map { it.convert() }
+            // collect sets P1, P2 and P3
+            val P1 = getProblemsByAreaAndGrade(areaName, wuGrades)
+            val P2 = getProblemsByAreaAndGrade(areaName, pGrades)
+            val P3 = getProblemsByAreaAndGrade(areaName, cdGrades)
 
-            gradeSearchResult.clear()
-            gradeSearchResult.addAll(problems)
+            // calculate sets D1, D2 and D3
+            val D1 = getClosePointsByDistance(P1, distance)
+            val D2 = getClosePointsByDistance(P2, distance)
+            val D3 = getClosePointsByDistance(P3, distance)
 
-            Log.i("problemsByAreaAndGrade", problems.count().toString())
+            // output input sets
+            for (climb in P1) {
+                Log.i("MVM, P1: ", climb.name!!)
+            }
+            println()
+            for (climb in P2) {
+                Log.i("MVM, P2: ", climb.name!!)
+            }
+            println()
+            for (climb in P3) {
+                Log.i("MVM, P3: ", climb.name!!)
+            }
+            println()
+            for (climb in D1){
+                Log.i("MVM, D1: ", climb.first.name + " | " + climb.second.name)
+            }
+            println()
+            for (climb in D2){
+                Log.i("MVM, D2: ", climb.first.name + " | " + climb.second.name)
+            }
+            println()
+            for (climb in D3){
+                Log.i("MVM, D3: ", climb.first.name + " | " + climb.second.name)
+            }
+            println()
+
+            Log.i("MVM", "P1: ${P1.size} | P2: ${P2.size} | P3: ${P3.size} ")
+            Log.i("MVM", "D1: ${D1.size} | D2: ${D2.size} | D3: ${D3.size} ")
+            println()
+
+            // convert to CNF
+            convertCNF(P1, P2, P3, D1, D2, D3, n , m, p)
         }
+    }
+
+    // this should be able to take GradeRange instead of List<String> ?
+    private suspend fun fetchProblemsByAreaAndGrade(areaName: String, grades: List<String>)  {
+        val problems = problemRepository.getProblemsByAreaAndGrade(areaName, grades)
+            .map { it.convert() }
+
+        gradeSearchResult.clear()
+        gradeSearchResult.addAll(problems)
+    }
+
+    private suspend fun getProblemsByAreaAndGrade(areaName: String, grades: List<String>): List<Problem> {
+        val job = viewModelScope.launch {
+            fetchProblemsByAreaAndGrade(areaName, grades)
+        }
+        job.join()
+
+        return gradeSearchResult.toList()
     }
 
     fun fetchAllProblemsByArea(areaName: String) {
@@ -162,21 +230,25 @@ class MapViewModel(
 
             areaSearchResult.clear()
             areaSearchResult.addAll(problems)
-
-           /* for (problem in problems) {
-                problem.name?.let { Log.i("ProblemsByArea", it) }
-            }*/
-            Log.i("ProblemsByArea", problems.count().toString())
         }
     }
 
-    fun fetchClosePointsByDistance(distance: Float): List<Pair<Problem, Problem>> {
-        val closeProblems = GPSDistanceAlgorithm().pointsWithinDistance(areaSearchResult, distance)
+    private fun fetchClosePointsByDistance(problems: List<Problem>, distance: Float) {
+            val closeProblems = GPSDistanceAlgorithm().pointsWithinDistance(problems, distance)
 
-        Log.i("closeProblems", closeProblems.count().toString())
-
-        return closeProblems
+            closeProblemsResult.clear()
+            closeProblemsResult.addAll(closeProblems)
     }
+
+    private suspend fun getClosePointsByDistance(problems: List<Problem>, distance: Float): List<Pair<Problem, Problem>> {
+        val job = viewModelScope.launch {
+            fetchClosePointsByDistance(problems, distance)
+        }
+        job.join()
+
+        return closeProblemsResult.toList()
+    }
+
 
     fun fetchProblemByName(problemName: String?) {
         viewModelScope.launch {
@@ -190,6 +262,7 @@ class MapViewModel(
             Log.i("fetchProblemByName", problems.toString())
         }
     }
+
     private fun String.normalized() =
         Normalizer.normalize(this, Normalizer.Form.NFD)
             .replace(REGEX_EXCLUDED_CHARS, "")

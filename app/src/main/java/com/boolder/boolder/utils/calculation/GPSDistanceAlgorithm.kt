@@ -24,7 +24,9 @@ class GPSDistanceAlgorithm {
             for (j in i+1 until dataPoints.size) {
                 val dist = distanceFromPoints(dataPoints[i], dataPoints[j])
                 if (dataPoints[i].id != dataPoints[j].id && dist < maxDist) {
+                    // direction matters, so add two pairs to represent travelling from one to another and vice versa.
                     closePoints.add(Pair(dataPoints[i], dataPoints[j]))
+                    closePoints.add(Pair(dataPoints[j], dataPoints[i]))
                 }
             }
         }
@@ -40,7 +42,6 @@ class GPSDistanceAlgorithm {
         var a = sin(diffLat / 2).pow(2) + cos(point1.latitude) * cos(point2.latitude) * sin(diffLong / 2).pow(2)
         var km = 2 * asin(sqrt(a)) * 6371
 
-//        Log.i("distanceFromPoints", "p1: " + point1.name + " | p2: " + point2.name + " | dist: " + (km*1000).toString() + "m")
         return km*1000
     }
 

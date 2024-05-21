@@ -102,6 +102,30 @@ class MapActivity : AppCompatActivity(), LocationCallback, BoolderMapListener {
         binding.fabPlanRoute.setOnClickListener {
             Log.i("fabPlanRoute", "Hello world! :)")
 
+/*            // testing Tseitin
+            var clause1 = Clause("A", "B", null, ClauseType.CONJUNCTION)
+            var clause2 = Clause("C", "D", null, ClauseType.CONJUNCTION)
+            var clause3 = Clause("E", "F", null, ClauseType.CONJUNCTION)
+
+            //var init_clauses = mutableListOf<Clause>(clause1, clause2, clause3)
+            val clause_queue: Queue<Clause> = LinkedList()
+            clause_queue.add(clause1)
+            clause_queue.add(clause2)
+            clause_queue.add(clause3)
+
+            val tseitin = TseitinTransform(clause_queue)*/
+
+            // testing DIMACS conversion
+            val areaName = "rocherdugeneral"
+            val wu_cd_grades = listOf("3b","3b+","3c","3c+")
+            val p_grades = listOf("5c", "5c+")
+            val distance: Float = 25F //this is in METERS
+            val m = 2
+            val n = 2
+            val p = 2
+
+            mapViewModel.convertCNF(areaName, wu_cd_grades, p_grades, wu_cd_grades, distance, m, n, p)
+
             //check retrieving problems by name
 /*            val query = "Crocodile"
             mapViewModel.fetchProblemByName(query)*/
@@ -113,10 +137,8 @@ class MapActivity : AppCompatActivity(), LocationCallback, BoolderMapListener {
             mapViewModel.fetchProblemsByAreaAndGrade(areaName, grades)*/
 
             //check retrieving all climbs from a crag and getting pairs within distance D of eachother
-            val distance: Float = 10F //this is in METERS
-            val areaName = "cuvier"
-            mapViewModel.fetchAllProblemsByArea(areaName)
-            var closeProblems = mapViewModel.fetchClosePointsByDistance(distance)
+/*            mapViewModel.fetchAllProblemsByArea(areaName)
+            var closeProblems = mapViewModel.getClosePointsByDistance(distance)*/
         }
 
         binding.fabLocation.setOnClickListener {
