@@ -119,12 +119,12 @@ class MapActivity : AppCompatActivity(), LocationCallback, BoolderMapListener {
             val areaName = "rocherdugeneral"
             val wu_cd_grades = listOf("3b","3b+","3c","3c+")
             val p_grades = listOf("5c", "5c+")
-            val distance: Float = 25F //this is in METERS
+            val distance: Float = 75F //this is in METERS
             val m = 2
-            val n = 2
+            val n = 5
             val p = 2
 
-            mapViewModel.convertCNF(areaName, wu_cd_grades, p_grades, wu_cd_grades, distance, m, n, p)
+            mapViewModel.collectDataAndConvertCNF(areaName, wu_cd_grades, p_grades, wu_cd_grades, distance, m, n, p)
 
             //check retrieving problems by name
 /*            val query = "Crocodile"
