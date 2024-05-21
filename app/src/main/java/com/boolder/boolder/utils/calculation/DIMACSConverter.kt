@@ -65,7 +65,7 @@ internal class DIMACSConverter(P1: List<Problem>, P2: List<Problem>, P3: List<Pr
         // note: C1=C3, C5 also covers C4
         convertC2()
         convertC3()
-        convertC5() // checking...
+        //convertC5() // checking...
         convertC6()
 
         // generate header and clause strings
@@ -93,15 +93,20 @@ internal class DIMACSConverter(P1: List<Problem>, P2: List<Problem>, P3: List<Pr
         if (satisfiable == "SAT") {
             val assignments = outputLines[1].split("\\s+".toRegex())
             for (assignment in assignments) {
-                Log.i("SAT output", assignment)
-
-                if (assignment == "0") { // always skip the 0 from the end
+                if (assignment == "0") {
+                    // skip tseitin definitions and the terminal 0 char
                     break
                 } else if (assignment.first() != '-') {
                     val key = variableMapping.entries.find { it.value == assignment }?.key
+                    /*if (key!!.first() != 'f') {
+                        trueAssignments.add(key)
+                    }*/
                     trueAssignments.add(key!!)
                 } else {
                     val key = variableMapping.entries.find { it.value == assignment.drop(1) }?.key
+                    /*if (key!!.first() != 'f') {
+                        falseAssignments.add(key)
+                    }*/
                     falseAssignments.add(key!!)
                 }
 
@@ -222,7 +227,7 @@ internal class DIMACSConverter(P1: List<Problem>, P2: List<Problem>, P3: List<Pr
 
     private fun convertC5Helper(set: List<Pair<Problem,Problem>>, lower: Int, upper: Int): Queue<Clause> {
         val clauses: Queue<Clause> = LinkedList()
-        for (i in lower..upper-1) {
+        for (i in lower..<upper) {
             for (pair in set) {
 /*                clauses.add(Clause("$i${pair.first.id}", "${i+1}${pair.second.id}", null, ClauseType.CONJUNCTION))
                 variables.add("$i${pair.first.id}")
@@ -436,16 +441,16 @@ internal class DIMACSConverter(P1: List<Problem>, P2: List<Problem>, P3: List<Pr
     }
 
     private fun convertC6(){
-/*        // combine the sets
+        // combine the sets
         var P = mutableListOf<Problem>()
         P.addAll(P1)
         P.addAll(P2)
         P.addAll(P3)
 
-        clausesC6.addAll(convertC6Helper(P, 1, n+m+p))*/
-        clausesC6.addAll(convertC6Helper(P1, 1, n))
+        clausesC6.addAll(convertC6Helper(P, 1, n+m+p))
+/*        clausesC6.addAll(convertC6Helper(P1, 1, n))
         clausesC6.addAll(convertC6Helper(P2, n+1, n+m))
-        clausesC6.addAll(convertC6Helper(P3, n+m+1, n+m+p))
+        clausesC6.addAll(convertC6Helper(P3, n+m+1, n+m+p))*/
     }
 
     private fun convertC6Helper(gradeRange: List<Problem>, lower: Int, upper: Int): MutableList<Clause> {
