@@ -101,7 +101,6 @@ class MapActivity : AppCompatActivity(), LocationCallback, BoolderMapListener {
 
         binding.fabPlanRoute.setOnClickListener {
             Log.i("fabPlanRoute", "Hello world! :)")
-
 /*            // testing Tseitin
             var clause1 = Clause("A", "B", null, ClauseType.CONJUNCTION)
             var clause2 = Clause("C", "D", null, ClauseType.CONJUNCTION)
@@ -125,20 +124,6 @@ class MapActivity : AppCompatActivity(), LocationCallback, BoolderMapListener {
             val p = 2
 
             mapViewModel.collectDataAndConvertCNF(areaName, wu_cd_grades, p_grades, wu_cd_grades, distance, m, n, p)
-
-            //check retrieving problems by name
-/*            val query = "Crocodile"
-            mapViewModel.fetchProblemByName(query)*/
-
-            //check retrieving all climb pairs of grade and < distance
-/*            val areaName = "cuvier"
-            val grades = listOf("3a", "3b", "3c")
-
-            mapViewModel.fetchProblemsByAreaAndGrade(areaName, grades)*/
-
-            //check retrieving all climbs from a crag and getting pairs within distance D of eachother
-/*            mapViewModel.fetchAllProblemsByArea(areaName)
-            var closeProblems = mapViewModel.getClosePointsByDistance(distance)*/
         }
 
         binding.fabLocation.setOnClickListener {

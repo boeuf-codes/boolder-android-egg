@@ -23,18 +23,6 @@ internal class DIMACSConverter(P1: List<Problem>, P2: List<Problem>, P3: List<Pr
     private val m: Int
     private val p: Int
 
-    private var tseitinDefs = mutableListOf<BiConditionalClause>()
-    var tseitinCNFs = mutableListOf<Clause>()
-        private set
-
-    private var tseitinStartIndex = 1
-
-    private var variables = mutableSetOf<String>()
-    private var variableMapping = mutableMapOf<String, String>() //mutableSetOf<Pair<String, String>>()
-
-    private var headerString = ""
-    private var dimacsString = ""
-
     var clausesC2 = mutableListOf<Clause>()
         private set
     var clausesC5 = mutableListOf<Clause>()
@@ -43,6 +31,17 @@ internal class DIMACSConverter(P1: List<Problem>, P2: List<Problem>, P3: List<Pr
         private set
     var clausesC6 = mutableListOf<Clause>()
         private set
+
+    private var tseitinDefs = mutableListOf<BiConditionalClause>()
+    var tseitinCNFs = mutableListOf<Clause>()
+        private set
+    private var tseitinStartIndex = 1
+
+    private var variables = mutableSetOf<String>()
+    var variableMapping = mutableMapOf<String, String>() //mutableSetOf<Pair<String, String>>()
+
+    private var headerString = ""
+    private var dimacsString = ""
 
     init {
         this.P1 = P1
@@ -55,9 +54,6 @@ internal class DIMACSConverter(P1: List<Problem>, P2: List<Problem>, P3: List<Pr
         this.n = n
         this.m = m
         this.p = p
-
-        // check shit (i.e. empty sets)
-
     }
 
     fun convert(): String {
@@ -65,26 +61,22 @@ internal class DIMACSConverter(P1: List<Problem>, P2: List<Problem>, P3: List<Pr
         // note: C1=C3, C5 also covers C4
         convertC2()
         convertC3()
-        //convertC5() // checking...
+        convertC5()
         convertC6()
 
         // generate header and clause strings
         makeFileHeader()
         makeFileContents()
 
-        // make + write to file
-
-        // return file
-
         return headerString + dimacsString
     }
 
-    fun extractSATOutput(output: String, outputFalseAssignments: Boolean){
-        val outputLines = output.lines()
+    fun extractSATOutput(satOutput: String, outputFalseAssignments: Boolean){
+        val outputLines = satOutput.lines()
         val satisfiable = outputLines[0]
 
-        val trueAssignments = mutableListOf<String>()
-        val falseAssignments = mutableListOf<String>()
+        val trueAssignments = mutableSetOf<String>()
+        val falseAssignments = mutableSetOf<String>()
 
         // output whether SAT/UNSAT
         Log.i("SAT output: ", satisfiable)
@@ -98,22 +90,26 @@ internal class DIMACSConverter(P1: List<Problem>, P2: List<Problem>, P3: List<Pr
                     break
                 } else if (assignment.first() != '-') {
                     val key = variableMapping.entries.find { it.value == assignment }?.key
-                    /*if (key!!.first() != 'f') {
+                    if (key!!.first() != 'f') {
                         trueAssignments.add(key)
-                    }*/
+                    }
                     trueAssignments.add(key!!)
                 } else {
                     val key = variableMapping.entries.find { it.value == assignment.drop(1) }?.key
-                    /*if (key!!.first() != 'f') {
+                    if (key!!.first() != 'f') {
                         falseAssignments.add(key)
-                    }*/
-                    falseAssignments.add(key!!)
+                    }
+                    falseAssignments.add(key)
                 }
 
             }
-            Log.i("SAT true: ", trueAssignments.toString())
+            for (assign in trueAssignments){
+                Log.i("SAT true: ", "route position: ${assign.first()} | id: ${assign.drop(1)}")
+            }
             if (outputFalseAssignments) {
-                Log.i("SAT false: ", falseAssignments.toString())
+                for (assign in falseAssignments) {
+                    Log.i("SAT false: ", "route position: ${assign.first()} | id: ${assign.drop(1)}")
+                }
             }
         }
 
@@ -179,10 +175,6 @@ internal class DIMACSConverter(P1: List<Problem>, P2: List<Problem>, P3: List<Pr
                         val alias2 = addVarAndGetAlias("$i${k.id}")
 
                         clauses.add(Clause("-$alias1", "-$alias2", null, ClauseType.DISJUNCTION))
-/*                        clauses.add(Clause("-$i${j.id}", "-$i${k.id}", null, ClauseType.DISJUNCTION))
-
-                        variables.add("$i${j.id}")
-                        variables.add("$i${k.id}")*/
                     }
                 }
             }
@@ -205,8 +197,6 @@ internal class DIMACSConverter(P1: List<Problem>, P2: List<Problem>, P3: List<Pr
             for (j in gradeRange) {
                 val alias = addVarAndGetAlias("$i${j.id}")
                 clause.add(alias)
-/*                clause.add("$i${j.id}")
-                variables.add("$i${j.id}")*/
             }
             clauses.add(BigClause(clause.toList(), ClauseType.DISJUNCTION))
             clause.clear()
@@ -221,17 +211,12 @@ internal class DIMACSConverter(P1: List<Problem>, P2: List<Problem>, P3: List<Pr
 
         tseitin(clausesD1, clausesD2, clausesD3)
         clausesC5.addAll(tseitinCNFs)
-        /*val tseitin = TseitinTransformer(clausesD1, clausesD2, clausesD3, n, m, p).cnfClauses
-        clausesC5.addAll(tseitin)*/
     }
 
     private fun convertC5Helper(set: List<Pair<Problem,Problem>>, lower: Int, upper: Int): Queue<Clause> {
         val clauses: Queue<Clause> = LinkedList()
         for (i in lower..<upper) {
             for (pair in set) {
-/*                clauses.add(Clause("$i${pair.first.id}", "${i+1}${pair.second.id}", null, ClauseType.CONJUNCTION))
-                variables.add("$i${pair.first.id}")
-                variables.add("${i+1}${pair.second.id}")*/
                 val alias1 = addVarAndGetAlias("$i${pair.first.id}")
                 val alias2 = addVarAndGetAlias("${i+1}${pair.second.id}")
                 clauses.add(Clause(alias1, alias2, null, ClauseType.CONJUNCTION))
@@ -250,18 +235,6 @@ internal class DIMACSConverter(P1: List<Problem>, P2: List<Problem>, P3: List<Pr
         tseitinTranslate(tseitinDefs)
     }
 
-/*    private fun tseitinEncodeSet(clauses: Queue<Clause>, num: Int) {
-        if(clauses.size == num) { // check whether set is same as # of climbs, and if so just append variables to cnfClauses
-            for (clause in clauses){
-                tseitinCNFs.add(Clause(clause.literalOne, null, null, ClauseType.DISJUNCTION))
-                tseitinCNFs.add(Clause(clause.literalTwo!!, null, null, ClauseType.DISJUNCTION))
-            }
-        }
-        else { // otherwise encode as normal, starting at 1
-            tseitinEncode(clauses, tseitinStartIndex)
-        }
-    }*/
-
     private fun tseitinEncode(clauses: Queue<Clause>, index: Int) {
         if (clauses.size > 2) { // if more than 2 clauses, recursively build the definitions
             val currentClause = clauses.remove()
@@ -270,22 +243,6 @@ internal class DIMACSConverter(P1: List<Problem>, P2: List<Problem>, P3: List<Pr
             val alias2 = addVarAndGetAlias("f${index + 1}")
             val alias3 = addVarAndGetAlias("f${index + 2}")
 
-/*            tseitinDefs.add(
-                BiConditionalClause(
-                    "f${index + 1}",
-                    currentClause.literalOne,
-                    currentClause.literalTwo!!,
-                    ClauseType.CONJUNCTION
-                )
-            )
-            tseitinDefs.add(
-                BiConditionalClause(
-                    "f${index}",
-                    "f${index + 1}",
-                    "f${index + 2}",
-                    ClauseType.DISJUNCTION
-                )
-            )*/
             tseitinDefs.add(
                 BiConditionalClause(
                     alias2,
@@ -336,31 +293,6 @@ internal class DIMACSConverter(P1: List<Problem>, P2: List<Problem>, P3: List<Pr
                     ClauseType.DISJUNCTION
                 )
             )
-
-/*            tseitinDefs.add(
-                BiConditionalClause(
-                    "f${index + 1}",
-                    currentClause.literalOne,
-                    currentClause.literalTwo!!,
-                    ClauseType.CONJUNCTION
-                )
-            )
-            tseitinDefs.add(
-                BiConditionalClause(
-                    "f${index + 2}",
-                    nextClause.literalOne,
-                    nextClause.literalTwo!!,
-                    ClauseType.CONJUNCTION
-                )
-            )
-            tseitinDefs.add(
-                BiConditionalClause(
-                    "f${index}",
-                    "f${index + 1}",
-                    "f${index + 2}",
-                    ClauseType.DISJUNCTION
-                )
-            )*/
 
             // the first definition is the original clause, which is always true
             tseitinCNFs.add(Clause(startAlias, null, null, null))
@@ -448,9 +380,6 @@ internal class DIMACSConverter(P1: List<Problem>, P2: List<Problem>, P3: List<Pr
         P.addAll(P3)
 
         clausesC6.addAll(convertC6Helper(P, 1, n+m+p))
-/*        clausesC6.addAll(convertC6Helper(P1, 1, n))
-        clausesC6.addAll(convertC6Helper(P2, n+1, n+m))
-        clausesC6.addAll(convertC6Helper(P3, n+m+1, n+m+p))*/
     }
 
     private fun convertC6Helper(gradeRange: List<Problem>, lower: Int, upper: Int): MutableList<Clause> {
@@ -463,9 +392,6 @@ internal class DIMACSConverter(P1: List<Problem>, P2: List<Problem>, P3: List<Pr
                         val alias1 = addVarAndGetAlias("$j${i.id}")
                         val alias2 = addVarAndGetAlias("$k${i.id}")
                         clauses.add(Clause("-$alias1", "-$alias2", null, ClauseType.DISJUNCTION))
-/*                        clauses.add(Clause("-$j${i.id}", "-$k${i.id}", null, ClauseType.DISJUNCTION))
-                        variables.add("$j${i.id}")
-                        variables.add("$k${i.id}")*/
                     }
                 }
             }
